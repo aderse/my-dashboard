@@ -52,17 +52,21 @@
         </div>
     @endif
     <div class="flex-1 py-6 sm:px-6 lg:px-8">
-        <h3 class="mb-2 text-center text-xl">Notes & ToDo:</h3>
-        <div class="border border-gray-300 p-6 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-            @if (empty(auth()->user()->notes))
-                <p class="text-gray-500  dark:text-gray-400">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet</p>
-            @else
-                <ul class="list-disc pl-5">
-                    @foreach (auth()->user()->notes as $note)
-                        <li class="mb-2 text-gray-700 dark:text-gray-300">{{ $note->content }}</li>
+        <div class="flex justify-between ">
+            <h3 class="mb-2 text-xl">
+                ToDo:
+            </h3>
+            <button id="add-todo" class="relative -top-2 bg-transparent hover:bg-slate-500 text-slate-700 font-semibold hover:text-white px-4 border border-slate-500 hover:border-transparent rounded">+</button>
+        </div>
+        <div class="border border-gray-300 p-6 bg-white dark:bg-gray-800 overflow-hidden shadow-sm">
+            <!-- resources/views/dashboard.blade.php -->
+            <ul id="todo-list" class="space-y-1">
+                @if(! empty($todos)) 
+                    @foreach($todos as $todo)
+                        <li data-id="{{ $todo->id }}"><input type="checkbox" name="{{ $todo->id }}" id="todo-{{ $todo->id }}"  class="todo-item" /> <label>{{ $todo->title }}</label></li>
                     @endforeach
-                </ul>
-            @endif
+                @endif
+            </ul>
         </div>
     </div>
 </div>
@@ -108,4 +112,5 @@
         }
     });
 </script>
+@vite(['resources/js/app.js'])
 </x-app-layout>

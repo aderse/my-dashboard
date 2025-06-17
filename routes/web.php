@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ToDoController;
 use App\Services\GoogleCalendarService;
 use Illuminate\Support\Facades\Route;
 
@@ -9,18 +10,31 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
+
     $events = [];
-    if (auth()->check() && auth()->user()->hasGoogleCalendar()) {
-        $events = (new GoogleCalendarService())->getTodayEvents();
-    }
     $issues = [];
+    $todos = [];
+
     if (auth()->check()) {
-        $issues = app('App\Services\JiraService')->issuesAssignedToMe();
+        $user = auth()->user();
+
+        // Google Calendar
+        if ($user->hasGoogleCalendar()) {
+            $events = (new GoogleCalendarService())->getTodayEvents();
+        }
+
+        // Jira
+        $issues = app(App\Services\JiraService::class)->issuesAssignedToMe();
+
+        // Todos – pull newest first, tweak as you like
+        $todos = $user->todos()->latest()->get();
     }
-    view()->share('events', $events);
-    view()->share('issues', $issues);
-    
-    return view('dashboard');
+
+    return view('dashboard', [
+        'events' => $events,
+        'issues' => $issues,
+        'todos'  => $todos,
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -33,5 +47,9 @@ Route::middleware('auth')->group(function () {
 // Debug routes
 // Route::get('/calendar/debug', [CalendarFeedController::class, 'debug'])->middleware('auth');
 // Route::get('/jira/debug', [App\Services\JiraService::class, 'issuesAssignedToMe'])->middleware('auth');
+
+// Todo
+Route::post('/todos', [ToDoController::class, 'store'])->middleware('auth')->name('todo.store');
+Route::delete('/todos/{todo}', [ToDoController::class, 'destroy'])->middleware('auth')->name('todo.destroy');;
 
 require __DIR__.'/auth.php';
